@@ -4,7 +4,7 @@ name: Shiyou release · Windows x64 + macOS arm64
 
 on:
   # Pushing a shiyou-v<version> tag builds that version and publishes it under the tag; pushing the release/shiyou
-  # branch publishes its product version.
+  # branch publishes its product version. Pushes publish normal (latest) releases.
   push:
     branches: ['release/shiyou']
     tags: ['shiyou-v*']
@@ -18,7 +18,7 @@ on:
       prerelease:
         description: 'Mark the GitHub Release as a prerelease'
         type: boolean
-        default: true
+        default: false
 
 permissions:
   contents: read
@@ -30,7 +30,7 @@ concurrency:
 env:
   DSH_TELEMETRY_DISABLED: '1'
   BUILD_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || inputs.build_version }}
-  PRERELEASE: ${{ github.event_name == 'push' || inputs.prerelease }}
+  PRERELEASE: ${{ inputs.prerelease == true }}
 
 jobs:
   windows-x64:
@@ -143,13 +143,18 @@ jobs:
           cp dist/*-win-x64-unsigned.exe "release/Shiyou-${version}-windows-x64.exe"
           cp dist/*-mac-arm64-unsigned.dmg "release/Shiyou-${version}-macos-arm64.dmg"
           (cd release && shasum -a 256 * > SHA256SUMS.txt)
-          flags=()
-          if [[ "$PRERELEASE" == true ]]; then flags+=(--prerelease); fi
+          if [[ "$PRERELEASE" == true ]]; then flags=(--prerelease); else flags=(--prerelease=false --latest); fi
           cat > notes.md <<EOF
           Shiyou ${version} desktop client, built from ${GITHUB_SHA::7}.
 
           - **Windows x64:** \`Shiyou-${version}-windows-x64.exe\`. The installer is unsigned, so SmartScreen may warn: choose **More info → Run anyway**.
           - **macOS Apple Silicon:** \`Shiyou-${version}-macos-arm64.dmg\`. The app is not notarized: after copying it to Applications, right-click it and choose **Open**, or allow it in **System Settings → Privacy & Security**.
           EOF
-          gh release create "$tag" release/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-            --title "Shiyou ${version}" --notes-file notes.md "${flags[@]}"
+          # Re-publishing an existing version replaces its assets and notes instead of failing.
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release upload "$tag" release/* --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --title "Shiyou ${version}" --notes-file notes.md "${flags[@]}"
+          else
+            gh release create "$tag" release/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "Shiyou ${version}" --notes-file notes.md "${flags[@]}"
+          fi
