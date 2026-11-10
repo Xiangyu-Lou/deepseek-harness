@@ -321,7 +321,10 @@ export class SubagentModelSelectionCardController {
     const response = await this.ctx.remote.session.modelCatalog()
     if (generation !== this.catalogGeneration) return
     if (response.ok) {
-      this.catalogGroups = response.value.groups
+      // Shiyou: the Desktop client offers no preset DeepSeek routes.
+      this.catalogGroups = 'dshDesktop' in globalThis
+        ? response.value.groups.filter(group => group.id !== 'deepseek-account' && group.id !== 'deepseek-official')
+        : response.value.groups
       this.catalogPartial = response.value.failures.length > 0
       this.catalogStatus = 'ready'
     } else {

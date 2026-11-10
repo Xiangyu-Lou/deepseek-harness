@@ -247,7 +247,11 @@ export function ModelsSection(props: ModelsSectionProps): ReactNode {
 function Loaded({ injected, renderSlot }: { injected: ModelsSectionFace; renderSlot: ModelsRenderSlot }): ReactNode {
   const { controller, operations, schema, t } = injected
   const snapshot = injected.useSnapshot(value => value)
-  const state = { ...snapshot, rows: snapshot.rows.map(row => row.entry.provider === 'deepseek-account'
+  // Shiyou: the Desktop client offers no preset DeepSeek routes.
+  const visibleRows = 'dshDesktop' in globalThis
+    ? snapshot.rows.filter(row => row.entry.provider !== 'deepseek-account' && row.entry.provider !== 'deepseek-official')
+    : snapshot.rows
+  const state = { ...snapshot, rows: visibleRows.map(row => row.entry.provider === 'deepseek-account'
     ? { ...row, entry: { ...row.entry, displayName: t('deepSeekAccount') } } : row) }
   /** A new or failed surface waits for a current snapshot; background refreshes preserve its drafts. */
   const [hasReadySnapshot, setHasReadySnapshot] = useState(state.status === 'ready')
