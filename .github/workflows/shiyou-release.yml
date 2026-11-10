@@ -3,6 +3,9 @@
 name: Shiyou release · Windows x64 + macOS arm64
 
 on:
+  # Pushing a shiyou-v<version> tag builds that version and publishes it under the tag.
+  push:
+    tags: ['shiyou-v*']
   workflow_dispatch:
     inputs:
       build_version:
@@ -24,6 +27,8 @@ concurrency:
 
 env:
   DSH_TELEMETRY_DISABLED: '1'
+  BUILD_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || inputs.build_version }}
+  PRERELEASE: ${{ github.ref_type == 'tag' || inputs.prerelease }}
 
 jobs:
   windows-x64:
@@ -54,9 +59,8 @@ jobs:
             'DSH_DESKTOP_MANDATORY_UPDATE_PROD_ORIGIN=https://update.shiyou.invalid'
           ) | Set-Content -Encoding utf8 apps/desktop/.env.windows
       - name: Build unsigned installer
-        env:
-          BUILD_VERSION: ${{ inputs.build_version }}
         run: |
+          $env:BUILD_VERSION = $env:BUILD_VERSION -replace '^shiyou-v', ''
           $packageArgs = @('run', 'package:desktop:win:x64:unsigned')
           if ($env:BUILD_VERSION) { $packageArgs += @('--build-version', $env:BUILD_VERSION) }
           pnpm @packageArgs
@@ -91,9 +95,8 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
       - name: Build unsigned DMG
-        env:
-          BUILD_VERSION: ${{ inputs.build_version }}
         run: |
+          BUILD_VERSION="${BUILD_VERSION#shiyou-v}"
           args=()
           if [[ -n "$BUILD_VERSION" ]]; then args+=(--build-version "$BUILD_VERSION"); fi
           pnpm run package:desktop:mac:arm64:unsigned "${args[@]}"
@@ -130,9 +133,8 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-          BUILD_VERSION: ${{ inputs.build_version }}
-          PRERELEASE: ${{ inputs.prerelease }}
         run: |
+          BUILD_VERSION="${BUILD_VERSION#shiyou-v}"
           version="${BUILD_VERSION:-$(node -p "require('./apps/desktop/package.json').version")}"
           tag="shiyou-v${version}"
           mkdir release
