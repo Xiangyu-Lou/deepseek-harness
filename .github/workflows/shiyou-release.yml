@@ -3,8 +3,10 @@
 name: Shiyou release · Windows x64 + macOS arm64
 
 on:
-  # Pushing a shiyou-v<version> tag builds that version and publishes it under the tag.
+  # Pushing a shiyou-v<version> tag builds that version and publishes it under the tag; pushing the release/shiyou
+  # branch publishes its product version.
   push:
+    branches: ['release/shiyou']
     tags: ['shiyou-v*']
   workflow_dispatch:
     inputs:
@@ -28,7 +30,7 @@ concurrency:
 env:
   DSH_TELEMETRY_DISABLED: '1'
   BUILD_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || inputs.build_version }}
-  PRERELEASE: ${{ github.ref_type == 'tag' || inputs.prerelease }}
+  PRERELEASE: ${{ github.event_name == 'push' || inputs.prerelease }}
 
 jobs:
   windows-x64:
