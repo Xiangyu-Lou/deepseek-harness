@@ -11,6 +11,17 @@ export interface ModelCatalogState {
   error: string | null
 }
 
+/**
+ * Drop the preset DeepSeek provider groups from a Host catalog in the Desktop client.
+ * Shiyou keeps those routes registered on the Host but offers none of their models.
+ * @param catalog - catalog as the Host advertised it.
+ * @returns the catalog without preset DeepSeek groups on Desktop; the unchanged catalog elsewhere.
+ */
+export function withoutPresetProviders(catalog: ModelCatalog): ModelCatalog {
+  if (!('dshDesktop' in globalThis)) return catalog
+  return { ...catalog, groups: catalog.groups.filter(group => group.id !== 'deepseek-account' && group.id !== 'deepseek-official') }
+}
+
 /** Loads at most one model catalog for the current Host generation. */
 export class ModelCatalogDirectory {
   /** Current shared catalog value and load lifecycle. */
@@ -57,15 +68,16 @@ export class ModelCatalogDirectory {
       if (!response.ok) {
         throw new Error(`${response.error.code}: ${response.error.message}`)
       }
+      const catalog = withoutPresetProviders(response.value)
       if (generation === this.generation) {
-        for (const group of response.value.groups) {
+        for (const group of catalog.groups) {
           for (const model of group.models) {
             this.reasoning.set(JSON.stringify([group.id, model.id]), model.reasoning)
           }
         }
-        this.store.set({ value: response.value, status: 'ready', error: null })
+        this.store.set({ value: catalog, status: 'ready', error: null })
       }
-      return response.value
+      return catalog
     }).catch((error: unknown) => {
       if (generation === this.generation) {
         this.store.update((draft) => {

@@ -67,9 +67,11 @@ export interface WelcomeAuthentication {
 
 /**
  * Decide whether a startup or sign-out requires the welcome entry.
- * @param authentication - current account and independently stored API-key facts.
- * @returns true only when neither authentication route is configured.
+ * Shiyou disables DeepSeek account sign-in, so the welcome entry never opens and
+ * startup goes straight to the workspace, where models are configured in Settings.
+ * @param _authentication - current account and independently stored API-key facts.
+ * @returns always false.
  */
-export function needsWelcome(authentication: WelcomeAuthentication): boolean {
-  return !authentication.loggedIn && !authentication.hasApiKey
+export function needsWelcome(_authentication: WelcomeAuthentication): boolean {
+  return false
 }

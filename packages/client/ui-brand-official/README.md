@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-This package supplies a click-triggered pixel whale on the blank home and gives an `official` client build the DeepSeek Harness sidebar artwork. The shipped Web and Desktop compositions load it by default. Other build profiles retain their existing branding. The hero mark stays on its animated fish fallback. The background owns only temporary canvas resources and adds no model requests.
+In Shiyou this package gives every client build the Shiyou (识油) brand: the oil-drop mark and 识油 lettering in the sidebar, and the same mark before the blank-home headline. The shipped Web and Desktop compositions load it by default. The pixel-whale home decoration remains in the package for upstream compatibility but is not registered, because the whale is DeepSeek brand material. The plugin adds no model requests.
 
 ## Table of Contents
 
@@ -25,15 +25,15 @@ This package supplies a click-triggered pixel whale on the blank home and gives 
 <a id="use-this-package"></a>
 ## Use this package
 
-The shipped Web and Desktop compositions already mount this plugin. Home feedback needs no extra installation or enablement; an `official` client build also registers the DeepSeek sidebar artwork.
+The shipped Web and Desktop compositions already mount this plugin. It registers the sidebar mark, the sidebar name, and the hero mark; it registers no home feedback.
 
 ### Choosing the profile
 
-`DSH_CLIENT_BUILD_PROFILE` selects which brand renders. An `official` build shows the official sidebar mark and name; any other value leaves the shell fallbacks — the fish mark and the local-build label — in place. The conversation hero shows the animated hero fish from `dsh-client-ui-conversation` regardless of profile, because that fallback is already the official mark. The plugin still loads and validates in both cases; only the sidebar artwork registration is profile-gated; the home background is shared across build profiles.
+`DSH_CLIENT_BUILD_PROFILE` does not gate the Shiyou artwork: official and local builds both show the Shiyou mark and name instead of the shell fallbacks. The hero mark slot also shows the Shiyou mark instead of the animated hero fish from `dsh-client-ui-conversation`.
 
 ### Home feedback
 
-The default home stays clear until a primary click on empty space plays one light-gray whale breach. Successive completed clicks alternate between dots and code lettering, starting with dots. Both use the same large animated silhouette. The animation lasts 5.7 seconds, then clears. Repeated clicks leave the current playback uninterrupted. The whale's frame layer classifies clicks: blank space inside its frame triggers playback, including margins beside the input card, while input fields, controls, the input card, portaled overlays, and a click that ends a text selection never do. The canvas takes neither focus nor pointer events; the frame receives the clicks. On narrow homes the whale keeps a larger scale and is cropped at the canvas edges, without adding horizontal scrolling. Reduced-motion preference disables it, and leaving the blank home releases its animation and observers.
+The upstream whale decoration described below is not registered in Shiyou. When registered, the default home stays clear until a primary click on empty space plays one light-gray whale breach. Successive completed clicks alternate between dots and code lettering, starting with dots. Both use the same large animated silhouette. The animation lasts 5.7 seconds, then clears. Repeated clicks leave the current playback uninterrupted. The whale's frame layer classifies clicks: blank space inside its frame triggers playback, including margins beside the input card, while input fields, controls, the input card, portaled overlays, and a click that ends a text selection never do. The canvas takes neither focus nor pointer events; the frame receives the clicks. On narrow homes the whale keeps a larger scale and is cropped at the canvas edges, without adding horizontal scrolling. Reduced-motion preference disables it, and leaving the blank home releases its animation and observers.
 
 The whale uses very faint neutral theme ink, appearing as a subtle background texture; code lettering has more contrast than the dots. Water splashes retain fine particles with stronger ink, especially on the left during landing. A packaged frame atlas supplies the motion; the browser loads it once through the plugin asset route on the first eligible click. Code fills use dense 7px lettering drawn only from authored code slogans, and the moving silhouette clips text as it enters or leaves the water. Decode or pixel-read failures stop the decoration, leave home usable, and log a reload action.
 
